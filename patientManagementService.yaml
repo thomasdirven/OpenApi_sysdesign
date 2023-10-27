@@ -1,10 +1,19 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Patient Management Service
+  description: REST part of the Patient Management Service
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
 paths:
   /Patient:
     post:
       description: add a new patient and updates its urgency for further treatment. If needed, extra info will be requested from the Administrative worker. 
       operationId: addPatient
       requestBody: 
-        description: Informatient of the patient and urgency of the treatmen
+        description: Information of the patient and urgency of the treatment
         required: true
         content: 
           application/json:
@@ -32,7 +41,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Quote
+                $ref: '#/components/schemas/Quote'
         default:
           description: unexpected error
           content:
@@ -167,6 +176,84 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/Error'
+
+  /assignPersonnel:
+    post:
+      description: add a personnel for the patient 
+      operationId: assignPersonnel
+      requestBody: 
+        description: personnelId that is assigned to the patient id 
+        required: true
+        content: 
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PersonnelAssignment'
+      responses:
+        '200':
+          description: personnel assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonnelAssignment'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    /assignIntervention:
+      post:
+        description: add a intervention for the patient 
+        operationId: assignIntervention
+        requestBody: 
+          description: interventionId that is assigned to the patient id 
+          required: true
+          content: 
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/InterventionAssignment'
+        responses:
+          '200':
+            description: intervention assigned
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/interventionAssignment'
+          default:
+            description: unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+    /assignRoom:
+    post:
+      description: add a room for the patient 
+      operationId: assignRoom
+      requestBody: 
+        description: roomid that is assigned to the patient id 
+        required: true
+        content: 
+          application/json:
+            schema:
+                $ref: '#/components/schemas/RoomAssignment'
+      responses:
+        '200':
+          description: room assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomAssignment'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+        
+
+  
         
 components:
   schemas:
@@ -185,6 +272,7 @@ components:
         patientId:
           type: int
         ....
+        
     MedicalRecord:
       type: object
       required:
@@ -212,7 +300,39 @@ components:
           format: int32
         message:
           type: string
-     
+
+    RoomAssignment:
+      type: object
+      required: 
+        - roomId
+        - patientId
+      properties:
+        roomId:
+          type: integer
+        patientId:
+          type: integer
+
+    PersonnelAssignment:
+      type: object
+      required: 
+        - personnelId
+        - patientId
+      properties:
+        personnelId:
+          type: integer
+        patientId:
+          type: integer
+
+    InterventionAssignment:
+      type: object
+      required: 
+        - interventionId
+        - patientId
+      properties:
+        interventionId:
+          type: integer
+        patientId:
+          type: integer
 
     
 asyncapi: 2.6.0
@@ -238,5 +358,3 @@ channels:
             needsRoom:
               type: boolean
 
-# TODO end point voor kamers 
-# TODO end point voor interventies
