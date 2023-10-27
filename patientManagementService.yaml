@@ -1,7 +1,7 @@
 paths:
   /Patient:
     post:
-      description: add a new patient and updates its urgency for further treatment
+      description: add a new patient and updates its urgency for further treatment. If needed, extra info will be requested from the Administrative worker. 
       operationId: addPatient
       requestBody: 
         description: Informatient of the patient and urgency of the treatmen
@@ -9,31 +9,210 @@ paths:
         content: 
           application/json:
             schema:
-              $ref: '#/components/schemas/patient'
-    put:
-      description: updates the patients information of a patient
-      operationId: upDatePatient
-      requestBody:
-        description: info of the patient
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/patient'
+              $ref: '#/components/schemas/Patient'
+      responses:
+        '200':
+          description: patient created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     get:
       discription: get a list of all patients
       operationId: getAllPatients
+      responses:
+        '200':
+          description: accepted quote response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       
   patient/{patientId}:
     get:
       discription: get the patient with id patientId
       operationId: getPatient
+      parameters:
+        - name: patientId
+          in: query
+          description: unique id of the patient that is requested
+          required: true
+          schema:
+            type: int
+      responses:
+        '200':
+          description: patient information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      put:
+        description: updates the patients information of a patient
+        operationId: upDatePatient
+        parameters:
+          - name: patientId
+            in: query
+            description: unique id of the patient that is requested
+            required: true
+            schema:
+              type: int
+        requestBody:
+          description: info of the patient that needs to be updated
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+        responses:
+          '200':
+            description: patient updated
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Patient'
+          default:
+            description: unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  patient/{patientId}/medicalRecord:
+    get:
+      discription: get the sensitive medical record of the patitient with patientid
+      operationId: getOverview
+      parameters:
+        - name: patientId
+          in: query
+          description: unique id of the patient that is requested
+          required: true
+          schema:
+            type: int
+      responses:
+        '200':
+          description: patient medical record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalReord'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'     
+
+ patient/{patientId}/medication:
+    get:
+      discription: get the information of what medication the patient needs
+      operationId: getMedication
+      parameters:
+        - name: patientId
+          in: query
+          description: unique id of the patient that is requested
+          required: true
+          schema:
+            type: int
+      responses:
+        '200':
+          description: patient medication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationArray'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'    
+      post:
+        description: add new medication that the patient needs
+        operationId: prescribeMedication
+        requestBody: 
+          description: the medication, dosis, and frequency
+          required: true
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Medication'
+        responses:
+          '200':
+            description: medication added
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Patient'
+          default:
+            description: unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+        
+components:
+  schemas:
+    Patient:
+      type: object
+      required:
+        - name
+        - lastname
+        - urgency
+        - patientId
+      properties:
+        name:
+          type: string
+        lastname:
+          type: string
+        patientId:
+          type: int
+        ....
+    MedicalRecord:
+      type: object
+      required:
+        - patientId
+        - name
+        - lastname
+        - ...
+      properties:
+        patientId:
+          type: string
+        name:
+          type: string
+        lastname:
+          type: string
+        ...
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
      
-
-
-
-
-
 
     
 asyncapi: 2.6.0
@@ -41,11 +220,23 @@ info:
   title: Hospital API
   version: '1.0.0'
 channels:
-  luggageWorkorder/notify:
+  patient/notify:
     subscribe:
-      summary: notify any listeners that a new workorder is available, passing the id as payload
-      operationId: notifyLuggageWorkorder
+      summary: Notify that a new patient has arrived in the hospital
+      operationId: notifyNewPatient
       message:
-        name: LuggageWorkorder
+        description: extra info if the patient needs a room, has to be updated,
+        name: NewPatient
         payload:
-          type: integer
+          type: object
+          additionalProperties: false
+          properties:
+            patientId:
+              type: string
+            updateInfo:
+              type: boolean
+            needsRoom:
+              type: boolean
+
+# TODO end point voor kamers 
+# TODO end point voor interventies
